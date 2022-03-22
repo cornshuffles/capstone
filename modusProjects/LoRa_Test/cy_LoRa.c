@@ -45,8 +45,8 @@ uint8_t LoRa_Init(){
 	while(0UL != (CY_SCB_SPI_TRANSFER_ACTIVE & Cy_SCB_SPI_GetTransferStatus(LoRa_HW, &LoRa_spiContext))){}
 	// Verify the version
 	printf("Status: %d", status);
-	printf("rxBuffer[0] = %x\n", rxBuffer[0]);
-	return rxBuffer[0] == 0x12;
+	printf("rxBuffer[1] = %x\n", rxBuffer[1]);
+	return rxBuffer[1] == 0x12;
 }
 
 
