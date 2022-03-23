@@ -76,10 +76,11 @@ struct LoRa{
     uint32_t frequency;
     uint32_t packetIndex;
     uint32_t implicitHeaderMode;
-    void *onReceive;
-    void *onTxDone;
+    bool interruptEnabled;
+    void (*onReceive)(int);
+    void (*onTxDone)(void);
 };
 
-uint8_t LoRa_Init();
+uint8_t LoRa_Init(void);
 
 #endif
