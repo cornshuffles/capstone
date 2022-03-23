@@ -1,3 +1,5 @@
+// This is a partial port of https://github.com/sandeepmistry/arduino-LoRa intended to be used on Infineon's CY8CKIT-149 PSoC 4 kit
+
 #ifndef CY_LORA_H
 #define CY_LORA_H
 
