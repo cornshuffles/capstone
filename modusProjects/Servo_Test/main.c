@@ -41,17 +41,20 @@
 *******************************************************************************/
 
 #include "cy_pdl.h"
+#include "cy_retarget_io.h"
 #include "cybsp.h"
 
-void setPosition(char position) {
-	if (position == 'L') Cy_TCPWM_PWM_SetCompare0(servo_HW, 4560, servo_NUM);
-	else if (position == 'R') Cy_TCPWM_PWM_SetCompare0(servo_HW, 4320, servo_NUM);
-	else if (position == 'M') Cy_TCPWM_PWM_SetCompare0(servo_HW, 4440, servo_NUM);
-	return;
+
+void setPosition(uint32_t angleOdangle) {
+	// 0 degrees - 1200
+	// 90 degrees - 720
+	// 180 degrees - 350
+	Cy_TCPWM_PWM_SetCompare0(servo_HW, servo_NUM, (((angleOdangle * 850) / 180) + 350));
 }
 
 int main(void)
 {
+	uint32_t adcResult0;
     cy_rslt_t result;
 
     /* Initialize the device and board peripherals */
@@ -61,16 +64,51 @@ int main(void)
         CY_ASSERT(0);
     }
 
+    /* Initialize retarget-io to use the debug UART port */
+    result = cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, CY_RETARGET_IO_BAUDRATE);
+
+
+    //result = Cy_CTB_Init(CTBM0, &pass_0_ctb_0_config);
+    if (result != CY_CTB_SUCCESS)
+    {
+      CY_ASSERT(0);
+    }
+       /*Enable Opamp0*/
+       // Cy_CTB_Enable(CTBM0);
+        /* Initialize the SAR ADC with the device configurator generated structure*/
+        result = Cy_SAR_Init(SAR0, &slider_config);
+        if (result != CY_SAR_SUCCESS)
+        {
+            CY_ASSERT(0);
+        }
+        /* Enable the SAR ADC */
+        Cy_SAR_Enable(SAR0);
+
+        /* Print message */
+        /* \x1b[2J\x1b[;H - ANSI ESC sequence for clear screen */
+        printf("\x1b[2J\x1b[;H");
+        printf("-----------------------------------------------------------\r\n");
+        printf("PSoC 4 MCU: SAR ADC BASIC\r\n");
+        printf("-----------------------------------------------------------\r\n\n");
     /* Enable global interrupts */
     __enable_irq();
 
-    Cy_TCPWM_PWM_Init(servo_HW, servo_NUM, &servo_config);
-    Cy_TCPWM_PWM_Enable(servo_HW, servo_NUM);
-    Cy_TCPWM_TriggerReloadOrIndex(servo_HW, servo_MASK);
-    setPosition('L');
+    Cy_TCPWM_PWM_Init(servo_HW, servo_NUM, &servo_config); //servo init
+    Cy_TCPWM_PWM_Enable(servo_HW, servo_NUM);				//servo init
+    Cy_TCPWM_TriggerReloadOrIndex(servo_HW, servo_MASK);   //servo init
+    //setPosition(178);
     for (;;)
     {
-
+    	/* Start the continuous conversion */
+    	Cy_SAR_StartConvert(SAR0, CY_SAR_START_CONVERT_SINGLE_SHOT);
+    	     /* Wait till the sample is ready */
+    	Cy_SAR_IsEndConversion(SAR0, CY_SAR_WAIT_FOR_RESULT);
+    	   /* Get the result from Input 0 */
+    	adcResult0 = Cy_SAR_GetResult16(SAR0, 0);
+    	printf("ADC Result Channel 0= %d mV\r\n", Cy_SAR_CountsTo_mVolts(SAR0, 0, ((adcResult0*180)/ CY_CFG_PWR_VDDA_MV)));
+    	uint32_t mv = Cy_SAR_CountsTo_mVolts(SAR0, 0, adcResult0);
+    	setPosition(((mv*180)/ CY_CFG_PWR_VDDA_MV));
+    	Cy_SysLib_Delay(100);
     }
 }
 
