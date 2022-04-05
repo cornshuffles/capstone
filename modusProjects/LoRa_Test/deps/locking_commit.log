@@ -1,6 +1,6 @@
 capsense release-v3.0.0
 core-lib release-v1.3.0
-core-make release-v1.9.0
+core-make release-v1.9.1
 mtb-hal-cat2 release-v2.0.0
 mtb-pdl-cat2 release-v1.5.0
-recipe-make-cat2 release-v1.2.0
+recipe-make-cat2 release-v1.2.1

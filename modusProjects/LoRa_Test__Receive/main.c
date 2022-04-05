@@ -44,6 +44,21 @@
 #include "cybsp.h"
 #include "cy_LoRa.h"
 #include "cy_retarget_io.h"
+#include <string.h> // strcmp
+
+// Buffer to hold received data in
+char rxBuffer[11] = "";
+
+void onReceiveCallback(int packetLength){
+
+	for(int i = 0; i < packetLength; i++){
+		rxBuffer[i] = read();
+	}
+
+	if(!strcmp(rxBuffer, "Hello World")){
+		Cy_GPIO_Inv(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM);
+	}
+}
 
 int main(void)
 {
@@ -72,34 +87,14 @@ int main(void)
     	Cy_GPIO_Write(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM, 1);
     }
 
-    // Data to transmit
-    char txBuffer[11] = "Hello World";
-    size_t txSize = sizeof(txBuffer);
-    size_t bytesWritten = 0;
+    // Register onReceive callback
+    onReceive(onReceiveCallback);
+    // Place the radio into receive mode
+    receive(0);
+
 
     for (;;)
     {
-        // Begin packet
-        if(!beginPacket(false)){
-    		// beginPacket failed
-    		Cy_GPIO_Write(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM, 1);
-    	}
-
-        // Write to packet
-        bytesWritten = write(txBuffer, txSize);
-        if(bytesWritten != txSize){
-        	// write failed
-        	Cy_GPIO_Write(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM, 1);
-        }
-
-        // End packet and transmit
-    	if(!endPacket(false)){
-    		// endPacket failed
-    		Cy_GPIO_Write(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM, 1);
-    	}
-
-    	// Wait 5 seconds
-    	Cy_SysLib_Delay(2000);
     }
 }
 
