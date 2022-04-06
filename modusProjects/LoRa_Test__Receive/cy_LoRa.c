@@ -234,8 +234,8 @@ uint8_t LoRa_Init(void){
 	// Set auto AGC
 	writeRegister(REG_MODEM_CONFIG_3, 0x04);
 
-	// Set output power to 17 dBm
-	setTxPower(17, PA_OUTPUT_PA_BOOST_PIN);
+	// Set output power to 20 dBm
+	setTxPower(20, PA_OUTPUT_PA_BOOST_PIN);
 
 	// Put in standby mode
 	stdby();
