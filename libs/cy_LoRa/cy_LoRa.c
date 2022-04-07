@@ -5,7 +5,7 @@
 
 #include "cy_LoRa.h"
 
-#define SPI_INTR_PRIORITY (2U)
+#define LORA_SPI_INTR_PRIORITY (2U)
 
 // LoRa struct to store state info in
 struct LoRa myLoRa = {.interruptEnabled = false};
@@ -16,11 +16,11 @@ cy_stc_scb_spi_context_t LoRa_spiContext;
 // LoRa SPI interrupt configuration structure
 const cy_stc_sysint_t spiIntrConfig = {
 .intrSrc = LoRa_IRQ,
-.intrPriority = SPI_INTR_PRIORITY,
+.intrPriority = LORA_SPI_INTR_PRIORITY,
 };
 
 // LoRa SPI interrupt service routine
-void SPI_Isr(void) { Cy_SCB_SPI_Interrupt(LoRa_HW, &LoRa_spiContext); }
+void LoRa_SPI_Isr(void) { Cy_SCB_SPI_Interrupt(LoRa_HW, &LoRa_spiContext); }
 
 // LoRa Module Functions
 
@@ -190,7 +190,7 @@ uint8_t LoRa_Init(void) {
 	// Set active slave select line
 	Cy_SCB_SPI_SetActiveSlaveSelect(LoRa_HW, CY_SCB_SPI_SLAVE_SELECT0);
 	// Enable SPI Interrupt
-	Cy_SysInt_Init(&spiIntrConfig, &SPI_Isr);
+	Cy_SysInt_Init(&spiIntrConfig, &LoRa_SPI_Isr);
 	NVIC_EnableIRQ(LoRa_IRQ);
 	// Enable the SPI
 	Cy_SCB_SPI_Enable(LoRa_HW);

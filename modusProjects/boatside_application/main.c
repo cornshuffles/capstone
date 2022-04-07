@@ -1,52 +1,54 @@
 /******************************************************************************
- * File Name:   main.c
- *
- * Description: This is the source code for the Empty PSoC4  Application
- *              for ModusToolbox.
- *
- * Related Document: See README.md
- *
- *
- *******************************************************************************
- * Copyright 2020-2021, Cypress Semiconductor Corporation (an Infineon company)
- *or an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
- *
- * This software, including source code, documentation and related
- * materials ("Software") is owned by Cypress Semiconductor Corporation
- * or one of its affiliates ("Cypress") and is protected by and subject to
- * worldwide patent protection (United States and foreign),
- * United States copyright laws and international treaty provisions.
- * Therefore, you may use this Software only as provided in the license
- * agreement accompanying the software package from which you
- * obtained this Software ("EULA").
- * If no EULA applies, Cypress hereby grants you a personal, non-exclusive,
- * non-transferable license to copy, modify, and compile the Software
- * source code solely for use in connection with Cypress's
- * integrated circuit products.  Any reproduction, modification, translation,
- * compilation, or representation of this Software except as specified
- * above is prohibited without the express written permission of Cypress.
- *
- * Disclaimer: THIS SOFTWARE IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, NONINFRINGEMENT, IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
- * reserves the right to make changes to the Software without notice. Cypress
- * does not assume any liability arising out of the application or use of the
- * Software or any product or circuit described in the Software. Cypress does
- * not authorize its products for use in any products where a malfunction or
- * failure of the Cypress product may reasonably be expected to result in
- * significant property damage, injury or death ("High Risk Product"). By
- * including Cypress's product in a High Risk Product, the manufacturer
- * of such system or application assumes all risk of such use and in doing
- * so agrees to indemnify Cypress against all liability.
- *******************************************************************************/
-#include "FreeRTOS.h"
-#include "boatProtocol.h"
+* File Name:   main.c
+*
+* Description: This is the source code for the Empty PSoC4  Application
+*              for ModusToolbox.
+*
+* Related Document: See README.md
+*
+*
+*******************************************************************************
+* Copyright 2020-2021, Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
+*
+* This software, including source code, documentation and related
+* materials ("Software") is owned by Cypress Semiconductor Corporation
+* or one of its affiliates ("Cypress") and is protected by and subject to
+* worldwide patent protection (United States and foreign),
+* United States copyright laws and international treaty provisions.
+* Therefore, you may use this Software only as provided in the license
+* agreement accompanying the software package from which you
+* obtained this Software ("EULA").
+* If no EULA applies, Cypress hereby grants you a personal, non-exclusive,
+* non-transferable license to copy, modify, and compile the Software
+* source code solely for use in connection with Cypress's
+* integrated circuit products.  Any reproduction, modification, translation,
+* compilation, or representation of this Software except as specified
+* above is prohibited without the express written permission of Cypress.
+*
+* Disclaimer: THIS SOFTWARE IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, NONINFRINGEMENT, IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
+* reserves the right to make changes to the Software without notice. Cypress
+* does not assume any liability arising out of the application or use of the
+* Software or any product or circuit described in the Software. Cypress does
+* not authorize its products for use in any products where a malfunction or
+* failure of the Cypress product may reasonably be expected to result in
+* significant property damage, injury or death ("High Risk Product"). By
+* including Cypress's product in a High Risk Product, the manufacturer
+* of such system or application assumes all risk of such use and in doing
+* so agrees to indemnify Cypress against all liability.
+*******************************************************************************/
 #include "cy_pdl.h"
-#include "cy_retarget_io.h"
 #include "cybsp.h"
+#include "cy_retarget_io.h"
+
+#include "FreeRTOS.h"
 #include "task.h"
-#include <cy_DAC.h>
+
+#include "boatProtocol.h"
 #include <cy_LoRa.h>
+#include <cy_DAC.h>
 #include <cy_servo.h>
 
 #define killTimer_INTR_PRIORITY (2U)
@@ -80,8 +82,8 @@ volatile uint8_t rxBuffer[5] = "";
 void killTimerCallback(void) {
 	currentThrottle = 0;
 	currentSteering = NONE;
-	xTaskNotifyGive(throttle_task_handle);
-	xTaskNotifyGive(steering_task_handle);
+	vTaskNotifyGiveFromISR(throttle_task_handle, NULL);
+	vTaskNotifyGiveFromISR(steering_task_handle, NULL);
 }
 
 void onReceiveCallback(int packetLength) {
@@ -100,19 +102,19 @@ void onReceiveCallback(int packetLength) {
 			case THROTTLE:
 				if(rxBuffer[1] != currentThrottle) {
 					currentThrottle = rxBuffer[1];
-					xTaskNotifyGive(throttle_task_handle);
+					vTaskNotifyGiveFromISR(throttle_task_handle, NULL);
 				}
 				break;
 			case STEERING:
 				switch(rxBuffer[2]) {
 					case LEFT:
 						currentSteering = LEFT;
-						xTaskNotifyGive(steering_task_handle);
+						vTaskNotifyGiveFromISR(steering_task_handle, NULL);
 						break;
 
 					case RIGHT:
 						currentSteering = RIGHT;
-						xTaskNotifyGive(steering_task_handle);
+						vTaskNotifyGiveFromISR(steering_task_handle, NULL);
 						break;
 
 					case NONE: currentSteering = NONE; break;
@@ -121,7 +123,7 @@ void onReceiveCallback(int packetLength) {
 			case SERVO:
 				if(rxBuffer[3] != currentServo) {
 					currentServo = rxBuffer[3];
-					xTaskNotifyGive(servo_task_handle);
+					vTaskNotifyGiveFromISR(servo_task_handle, NULL);
 				}
 				break;
 
@@ -130,8 +132,8 @@ void onReceiveCallback(int packetLength) {
 			case KILL:
 				currentThrottle = 0;
 				currentSteering = NONE;
-				xTaskNotifyGive(throttle_task_handle);
-				xTaskNotifyGive(steering_task_handle);
+				vTaskNotifyGiveFromISR(throttle_task_handle, NULL);
+				vTaskNotifyGiveFromISR(steering_task_handle, NULL);
 				break;
 		}
 	}
@@ -139,8 +141,7 @@ void onReceiveCallback(int packetLength) {
 
 void throttle_task(void *arg) {
 	while(true) {
-		// Wait for notification that a throttle command has been received then set
-		// new throttle
+		// Wait for notification that a throttle command has been received then set new throttle
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		DAC_Write((uint16_t)currentThrottle);
 	}
@@ -148,8 +149,7 @@ void throttle_task(void *arg) {
 
 void steering_task(void *arg) {
 	while(true) {
-		// Wait for notification that a throttle command has been received then set
-		// new throttle
+		// Wait for notification that a throttle command has been received then set new throttle
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		switch(currentSteering) {
 			case LEFT:
@@ -176,8 +176,7 @@ void steering_task(void *arg) {
 
 void servo_task(void *arg) {
 	while(true) {
-		// Wait for notification that a throttle command has been received then set
-		// new throttle
+		// Wait for notification that a throttle command has been received then set new throttle
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		servo_Write((uint32_t)currentServo);
 	}
