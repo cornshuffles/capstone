@@ -2,17 +2,17 @@
 #define BOATPROTOCOL_H
 
 enum OPCODE {
-  THROTTLE,
-  STEERING,
-  SERVO,
-  KEEPALIVE,
-  KILL,
+	THROTTLE,
+	STEERING,
+	SERVO,
+	KEEPALIVE,
+	KILL,
 };
 
 enum STEERING {
-  LEFT,
-  RIGHT,
-  NONE,
+	LEFT,
+	RIGHT,
+	NONE,
 };
 
 #endif
