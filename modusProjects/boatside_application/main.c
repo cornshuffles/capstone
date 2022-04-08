@@ -143,6 +143,7 @@ void throttle_task(void *arg) {
 	while(true) {
 		// Wait for notification that a throttle command has been received then set new throttle
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		// TODO: MAP 8 bit range to 16bit range
 		DAC_Write((uint16_t)currentThrottle);
 	}
 }
