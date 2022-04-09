@@ -1,18 +1,15 @@
 #ifndef BOATPROTOCOL_H
 #define BOATPROTOCOL_H
 
-enum OPCODE {
+typedef enum {
 	THROTTLE,
 	STEERING,
 	SERVO,
 	KEEPALIVE,
 	KILL,
-};
-
-enum STEERING {
 	LEFT,
 	RIGHT,
 	NONE,
-};
+} opcode_t;
 
 #endif

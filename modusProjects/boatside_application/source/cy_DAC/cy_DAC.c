@@ -25,6 +25,9 @@ void DAC_Init(void) {
 	Cy_SysInt_Init(&SPI_IntrCfg, &DAC_SPI_Isr);
 	NVIC_EnableIRQ(DAC_IRQ);
 	Cy_SCB_SPI_Enable(DAC_HW);
+	DAC_Write(0x0000);
 }
 
 void DAC_Write(uint16_t data) { Cy_SCB_SPI_Transfer(DAC_HW, &data, NULL, 1U, &DAC_SpiContext); }
+
+/* [] END OF FILE */

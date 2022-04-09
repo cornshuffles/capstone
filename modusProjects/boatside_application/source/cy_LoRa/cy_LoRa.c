@@ -5,8 +5,10 @@
 
 #include "cy_LoRa.h"
 
+/* ==========Macros========== */
 #define LORA_SPI_INTR_PRIORITY (2U)
 
+/* ==========Global Vars========== */
 // LoRa struct to store state info in
 struct LoRa myLoRa = {.interruptEnabled = false};
 
@@ -22,7 +24,7 @@ const cy_stc_sysint_t spiIntrConfig = {
 // LoRa SPI interrupt service routine
 void LoRa_SPI_Isr(void) { Cy_SCB_SPI_Interrupt(LoRa_HW, &LoRa_spiContext); }
 
-// LoRa Module Functions
+/* ==========LoRa Module Functions========== */
 
 // Read/Write to Registers
 
@@ -64,7 +66,7 @@ void sleep(void) { writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP)
 // Returns:	void
 void stdby(void) { writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY); }
 
-// Configuration/Utility
+/* ==========Configuration/Utility========== */
 
 // Function to determine if a transmission is occurring
 // Params:	void

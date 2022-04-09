@@ -15,3 +15,5 @@ void servo_Write(uint32_t angle) {
 	// 180 degrees - 350
 	Cy_TCPWM_PWM_SetCompare0(servo_HW, servo_NUM, (((angle * 850) / 180) + 350));
 }
+
+/* [] END OF FILE */
