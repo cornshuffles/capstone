@@ -74,6 +74,11 @@ void btn_Callback(void) {
 			uint8_t valueToSend = (uint8_t)KILL;
 			xQueueSendToBackFromISR(LoRa_queue_handle, &valueToSend, NULL);
 		}
+		else{
+			// Set the throttle on boatside
+			uint8_t valueToSend = (uint8_t)THROTTLE;
+			xQueueSendToBackFromISR(LoRa_queue_handle, &valueToSend, NULL);
+		}
 	}
 }
 
