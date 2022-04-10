@@ -47,11 +47,8 @@ void SARCallback(void) {
 void killTimerCallback(void) {
 	Cy_TCPWM_ClearInterrupt(killTimer_HW, killTimer_NUM, CY_TCPWM_INT_ON_CC);
 	// Send keepalive command to LoRa task
-	static BaseType_t xHigherPriorityTaskWoken;
 	uint8_t valueToSend = (uint8_t)KEEPALIVE;
 	xQueueSendToBackFromISR(LoRa_queue_handle, &valueToSend, NULL);
-	// Yield current task if a higher priority task is now unblocked
-	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 // ISR that runs when any of the buttons are pushed. Ports 4 and 5 on the PSoC 4100s share an IRQ.
